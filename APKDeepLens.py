@@ -8,12 +8,15 @@ import time
 import xml.etree.ElementTree as ET
 from static_tools import sensitive_info_extractor, scan_android_manifest
 from report_gen import ReportGen
+import shutil
+from static_tools.mobsfscan.mobsfscan import MobSFScan
+
 
 """
     Title:      APKDeepLens
     Desc:       Android security insights in full spectrum.
-    Author:     Deepanshu Gajbhiye
-    Version:    1.0.0
+    Author:     Lider Roman
+    Version:    1.0.1
     GitHub URL: https://github.com/d78ui98/APKDeepLens
 """
 
@@ -82,6 +85,8 @@ def parse_args():
     parser.add_argument("-report", choices=["json", "pdf", "html"], default="json",
                     help="Format of the report to be generated. Default is JSON.")
     parser.add_argument("-l",metavar="log level", help="Set the logging level")
+    parser.add_argument("-f", "--force", action='store_true',
+                    help="Extracting apk if source code already extracted")
     return parser.parse_args()
 
 
@@ -90,7 +95,7 @@ class AutoApkScanner(object):
     def __init__(self):
         pass
 
-    def create_dir_to_extract(self, apk_file, extracted_path=None):
+    def create_dir_to_extract(self, apk_file, extracted_path=None, force=False):
         '''
         Creating a folder to extract apk source code
         '''
@@ -102,8 +107,14 @@ class AutoApkScanner(object):
         if os.path.exists(extracted_source_path) and os.path.isdir(extracted_source_path) and \
            os.path.exists(resources_path) and os.path.isdir(resources_path) and \
            os.path.exists(sources_path) and os.path.isdir(sources_path):
-            util.mod_log("[+] Source code for apk - {} Already extracted. Skipping this step.".format(apk_file), util.OKCYAN)
-            return {'result':0,"path":extracted_source_path}
+            if force:
+                shutil.rmtree(extracted_source_path)
+                os.makedirs(extracted_source_path, exist_ok=True)
+                util.mod_log("[+] Creating new directory for extracting apk : " + extracted_source_path, util.OKCYAN)
+                return {'result':1,"path":extracted_source_path}
+            else:
+                util.mod_log("[+] Source code for apk - {} Already extracted. Skipping this step.".format(apk_file), util.OKCYAN)
+                return {'result':0,"path":extracted_source_path}
         else:
             os.makedirs(extracted_source_path, exist_ok=True)
             util.mod_log("[+] Creating new directory for extracting apk : " + extracted_source_path, util.OKCYAN)
@@ -176,6 +187,7 @@ if __name__ == "__main__":
             "dangerous_permission":"",
             "manifest_analysis":"",
             "hardcoded_secrets":"",
+            "mobsfscan":""
         }
 
         # Creating object for autoapkscanner class
@@ -189,7 +201,7 @@ if __name__ == "__main__":
         time.sleep(1)
         
         # Extracting source code
-        target_dir = obj_self.create_dir_to_extract(apk_name, extracted_path=args.source_code_path if args.source_code_path else None)
+        target_dir = obj_self.create_dir_to_extract(apk_name, extracted_path=args.source_code_path if args.source_code_path else None, force=args.force)
         if target_dir["result"] == 1:
             obj_self.extract_source_code(apk_file_abs_path, target_dir["path"])
 
@@ -236,6 +248,11 @@ if __name__ == "__main__":
         all_file_path = obj.get_all_file_paths(extracted_apk_path)
         result = obj.extract_insecure_request_protocol(all_file_path)
         print(result)
+
+        # Scanning app using mobsfscan
+
+        scanner = MobSFScan([extracted_apk_path], json=True)
+        results_dict["mobsfscan"] = scanner.scan()["results"]
 
         ############## REPORT GENERATION ############
 

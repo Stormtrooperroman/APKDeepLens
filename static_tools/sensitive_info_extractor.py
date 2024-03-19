@@ -40,7 +40,7 @@ class SensitiveInfoExtractor(object):
             relative - gives the path relative to this path
         Out: string path: key type: value
         """
-        all_sensitive_info_list = []
+        all_sensitive_info_list = {}
         indent = "    "
 
         excluded_extensions = ['.ttf', '.otf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.dex', '.gradle']
@@ -56,12 +56,14 @@ class SensitiveInfoExtractor(object):
                     for items in types_ioc_list:
                         print(indent + items)
                         ioc_and_type = items.split()
+
                         secret_info = {
-                            "type":ioc_and_type[0],
                             "ioc":ioc_and_type[1],
                             "path": real_relative_path
                         }
-                        all_sensitive_info_list.append(secret_info)
+                        if ioc_and_type[0] not in all_sensitive_info_list:
+                            all_sensitive_info_list[ioc_and_type[0]] = []
+                        all_sensitive_info_list[ioc_and_type[0]].append(secret_info)
                         items = "{}: {}".format(real_relative_path, items)
             return all_sensitive_info_list
         except Exception as e:
