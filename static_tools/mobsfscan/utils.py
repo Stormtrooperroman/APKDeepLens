@@ -2,8 +2,8 @@
 """Logger Config."""
 from pathlib import Path
 
-import mobsfscan.settings as config
-from mobsfscan.logger import init_logger
+import static_tools.mobsfscan.settings as config
+from static_tools.mobsfscan.logger import init_logger
 
 import yaml
 

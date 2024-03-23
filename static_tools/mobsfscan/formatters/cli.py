@@ -4,7 +4,7 @@ from tabulate import tabulate
 
 from html import escape
 
-from mobsfscan.logger import init_logger
+from static_tools.mobsfscan.logger import init_logger
 
 logger = init_logger(__name__)
 UNSAFE_HTML = 'unsafehtml'

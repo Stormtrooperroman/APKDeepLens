@@ -6,8 +6,9 @@ from .utility.utility_class import util
     Title:      APKDeepLens
     Desc:       Android security insights in full spectrum.
     Author:     Deepanshu Gajbhiye
-    Version:    1.0.0
-    GitHub URL: https://github.com/d78ui98/APKDeepLens
+    Modder:     Lider Roman
+    Version:    1.0.1
+    GitHub URL: https://github.com/Stormtrooperroman/APKDeepLens
 """
 
 class bcolors:

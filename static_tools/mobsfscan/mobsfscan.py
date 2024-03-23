@@ -8,10 +8,10 @@ from libsast import (
     standards,
 )
 
-from mobsfscan.logger import init_logger
-from mobsfscan import settings
-from mobsfscan import manifest
-from mobsfscan.utils import (
+from static_tools.mobsfscan.logger import init_logger
+from static_tools.mobsfscan import settings
+from static_tools.mobsfscan import manifest
+from static_tools.mobsfscan.utils import (
     get_best_practices,
     get_config,
 )

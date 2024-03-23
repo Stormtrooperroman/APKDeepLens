@@ -9,8 +9,8 @@ import requests
 
 from concurrent.futures import ThreadPoolExecutor
 
-from mobsfscan.logger import init_logger
-from mobsfscan.manifest_metadata import metadata
+from static_tools.mobsfscan.logger import init_logger
+from static_tools.mobsfscan.manifest_metadata import metadata
 
 
 logger = init_logger(__name__)

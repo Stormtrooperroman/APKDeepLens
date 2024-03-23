@@ -9,15 +9,17 @@ import xml.etree.ElementTree as ET
 from static_tools import sensitive_info_extractor, scan_android_manifest
 from report_gen import ReportGen
 import shutil
+from static_tools.mobsfscan import __version__
 from static_tools.mobsfscan.mobsfscan import MobSFScan
-
+from static_tools.mobsfscan.formatters import cli
 
 """
     Title:      APKDeepLens
     Desc:       Android security insights in full spectrum.
-    Author:     Lider Roman
+    Author:     Deepanshu Gajbhiye
+    Modder:     Lider Roman
     Version:    1.0.1
-    GitHub URL: https://github.com/d78ui98/APKDeepLens
+    GitHub URL: https://github.com/Stormtrooperroman/APKDeepLens
 """
 
 logging.basicConfig(level=logging.ERROR, format="%(message)s")
@@ -60,7 +62,7 @@ class util:
 {util.OKGREEN}██  ██ ██     ██  ██`\__,_)`\___)`\___)| ,__/'(____/`\___)(_) (_)(____/     {util.ENDC}
 {util.OKGREEN}                                       | |                                  {util.ENDC}
 {util.OKGREEN}                                       (_)                                  {util.ENDC}
-{util.OKCYAN}                                              - Made By Deepanshu{util.ENDC}
+{util.OKCYAN}                                              - Made By Stormtrooperroman{util.ENDC}
         """
         print(logo)            
                                                                                                     
@@ -152,8 +154,7 @@ if __name__ == "__main__":
         try:
             os.environ['VIRTUAL_ENV']
         except KeyError:
-            util.mod_log("[-] ERROR: Not inside virtualenv. Do source venv/bin/activate", util.FAIL)
-            exit(0)
+            util.mod_log("[-] WARNING: Not inside virtualenv. Do source venv/bin/activate", util.FAIL)
 
         if not args.apk:
             util.mod_log("[-] ERROR: Please provide the apk file using the -apk flag.", util.FAIL)
@@ -168,13 +169,17 @@ if __name__ == "__main__":
             global apk_name, apk_path
 
             if os.sep in apk:
-                apk_name = os.path.basename(apk)  # Extracts the filename from the path
+                """
+                Extracts the filename from the path
+                """
+                apk_name = os.path.basename(apk)
                 apk_path = apk
-                return "file path"
             else:
+                """
+                User send filename
+                """
                 apk_name = apk
                 apk_path = apk
-                return "It's just the filename"
         
         # Calling function to handle apk names and path.
         is_path_or_filename(apk)
@@ -243,7 +248,7 @@ if __name__ == "__main__":
         hardcoded_secrets_result = obj.extract_all_sensitive_info(file_paths, relative_to)
         results_dict["hardcoded_secrets"] = hardcoded_secrets_result
     
-        # extracting insecure connections
+        # Extracting insecure connections
         util.mod_log("[+] Extracting all insecure connections ", util.OKCYAN)
         all_file_path = obj.get_all_file_paths(extracted_apk_path)
         result = obj.extract_insecure_request_protocol(all_file_path)
@@ -252,7 +257,13 @@ if __name__ == "__main__":
         # Scanning app using mobsfscan
 
         scanner = MobSFScan([extracted_apk_path], json=True)
-        results_dict["mobsfscan"] = scanner.scan()["results"]
+        scan_results = scanner.scan()
+        results_dict["mobsfscan"] = scan_results["results"]
+
+        cli.cli_output(None,
+                scan_results,
+                __version__,
+                'fancy_grid')
 
         ############## REPORT GENERATION ############
 
