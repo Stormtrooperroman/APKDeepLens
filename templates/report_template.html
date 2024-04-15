@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Report {{ package_name }}</title>
+        {{ style }}
+    </head>
+
+    <body>
+        <div class="heading heading1">
+            <h1>Basic Information</h1>
+            <div class="infos">
+                <div>Report Date: {{ date }}</div>
+                <div>Package: {{ package_name }}</div>
+                <!-- <div>Build: {{ build }}</div> -->
+                <div>Android Version: {{ android_version }}</div>
+            </div>
+        </div>
+        <hr />
+
+        <div class="heading heading1">
+            <h1>Permissions</h1>
+            <div class="infos">
+                <div>{{ permissions }}</div>
+            </div>
+        </div>
+        <hr />
+
+        <div class="heading heading1">
+            <h1>Dangerous Permissions</h1>
+            <div class="infos">
+                <div>{{ dangerous_permission }}</div>
+            </div>
+        </div>
+        <hr />
+
+        <div class="heading heading1">
+            <h1>MobSfscan</h1>
+            <div class="resp-table">{{ mobsfscan }}</div>
+        </div>
+        <hr />
+    </body>
+</html>

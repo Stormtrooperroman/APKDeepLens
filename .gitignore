@@ -4,5 +4,4 @@ __pycache__/
 app_source
 .vscode/
 reports/
-static_tools/__pycache__/__init__.cpython-311.pyc
-static_tools/__pycache__/sensitive_info_extractor.cpython-311.pyc
+.pyc

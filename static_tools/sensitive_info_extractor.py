@@ -7,7 +7,7 @@ from .utility.utility_class import util
     Desc:       Android security insights in full spectrum.
     Author:     Deepanshu Gajbhiye
     Modder:     Lider Roman
-    Version:    1.0.1
+    Version:    1.0.3
     GitHub URL: https://github.com/Stormtrooperroman/APKDeepLens
 """
 

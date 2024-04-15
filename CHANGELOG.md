@@ -4,6 +4,10 @@ All the notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [1.0.3] - 2024-04-15
+- Add mobsfscan
+- Code refactoring
+
 ## [1.0.2] - 2023-12-5
 - Better structuring of project be seperating code for android manifest analysis and report generation
 - updated debugging methods

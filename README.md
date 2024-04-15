@@ -1,14 +1,14 @@
 # <div align="center">APKDeepLens</div>
 <div align="center">
-<a href="https://github.com/d78ui98/APKDeepLens/tree/master#features">Features</a> • 
-<a href="https://github.com/d78ui98/APKDeepLens/tree/master#installation">Installation</a> • 
-<a href="https://github.com/d78ui98/APKDeepLens/blob/master/CHANGELOG.md">Changlog</a>
+<a href="https://github.com/Stormtrooperroman/APKDeepLens/tree/master#features">Features</a> • 
+<a href="https://github.com/Stormtrooperroman/APKDeepLens/tree/master#installation">Installation</a> • 
+<a href="https://github.com/Stormtrooperroman/APKDeepLens/blob/master/CHANGELOG.md">Changelog</a>
 </div>
 <p>
 
 APKDeepLens is a Python based tool designed to scan Android applications (APK files) for security vulnerabilities. It specifically targets the OWASP Top 10 mobile vulnerabilities, providing an easy and efficient way for developers, penetration testers, and security researchers to assess the security posture of Android apps.
 
-![image](https://github.com/d78ui98/APKDeepLens/assets/27950739/c9236e3d-60d5-4832-85dc-f09a449bade3)
+This is fork of original [APKDeepLens](https://github.com/d78ui98/APKDeepLens/) aimed at expanding functionality of scanning 
 
 
 
@@ -24,7 +24,6 @@ APKDeepLens is a Python-based tool that performs various operations on APK files
 - **Intent Filter Exploits** -> Pinpoint vulnerabilities by analyzing intent filters extracted from AndroidManifest.xml.
 - **Local File Vulnerability Detection** -> Safeguard your app by identifying potential mishandlings related to local file operations
 - **Report Generation** -> Generates detailed and easy-to-understand reports for each scanned APK, providing actionable insights for developers.
-- **CI/CD Integration** -> Designed for easy integration into CI/CD pipelines, enabling automated security testing in development workflows.
 - **User-Friendly Interface** -> Color-coded terminal outputs make it easy to distinguish between different types of findings.
 
 ## Installation
@@ -32,7 +31,7 @@ APKDeepLens is a Python-based tool that performs various operations on APK files
 To use APKDeepLens, you'll need to have Python 3.8 or higher installed on your system. You can then install APKDeepLens using the following command:
 ### For Linux
 ```
-git clone https://github.com/d78ui98/APKDeepLens/tree/main
+git clone https://github.com/Stormtrooperroman/APKDeepLens/tree/main
 cd /APKDeepLens
 python3 -m venv venv
 source venv/bin/activate
@@ -40,13 +39,26 @@ pip install -r requirements.txt
 python APKDeepLens.py --help
 ```
 ### For Windows
-```
-git clone https://github.com/d78ui98/APKDeepLens/tree/main
-cd \APKDeepLens
-python3 -m venv venv
-.\venv\Scripts\activate
-pip install -r .\requirements.txt
-python APKDeepLens.py --help
+This fork doesn't work on Windows because it use semgrep inside. But you can use it in WSL.
+
+## Command Line Options
+```     
+usage: APKDeepLens.py [-h] -apk APK [-v] [-source_code_path APK] [-report {json,pdf,html}] [-f] [-l log level]
+
+APKDeepLens: Android security insights in full spectrum. 
+
+options:
+  -h, --help            show this help message and exit
+  -apk APK              Path to the APK file to be analyzed.
+  -v, -version          Display the version of APKDeepLens.
+  -source_code_path APK
+                        Enter a valid path of extracted source for apk.
+  -report {json,pdf,html}
+                        Format of the report to be generated. Default is JSON.
+  -f, --force           Extracting apk if source code already extracted
+  -l log level          Set the logging level
+
+For more information, visit our GitHub repository - https://github.com/Stormtrooperroman/APKDeepLens
 ```
 
 ## Usage
@@ -68,15 +80,16 @@ To generate detailed PDF and HTML reports after the scan you can pass `-report` 
 ```
 python3 APKDeepLens.py -apk file.apk -report
 ```
+## TODO
+- [x] Add mobsfscan
+- [ ] Add collection of additional information about the apk
+- [ ] Extend semgrep rules
+
 ## Contributing
 
-We welcome contributions to the APKDeepLens project. If you have a feature request, bug report, or proposal, please open a new issue [here](https://github.com/d78ui98/APKDeepLens/issues).
+We welcome contributions to the APKDeepLens project. If you have a feature request, bug report, or proposal, please open a new issue [here](https://github.com/Stormtrooperroman/APKDeepLens/issues).
 
 For those interested in contributing code, please follow the standard GitHub process.
 We'll review your contributions as quickly as possible :)
 
-## Featured at
-
- - Blackhat MEA 2023 - https://blackhatmea.com/session/apkaleidoscope-android-security-insights-full-spectrum-0
- - Blackhat ASIA 2024 - https://www.blackhat.com/asia-24/arsenal/schedule/index.html#apkdeeplens---android-security-insights-in-full-spectrum-37182
 

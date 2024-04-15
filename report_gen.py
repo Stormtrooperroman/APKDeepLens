@@ -2,10 +2,10 @@ import os
 import subprocess
 import re
 import json
-from xhtml2pdf import pisa
-import xml.etree.ElementTree as ET
 import datetime
 import logging
+from html import escape
+from weasyprint import HTML, CSS
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 """
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
     Desc:       Android security insights in full spectrum.
     Author:     Deepanshu Gajbhiye
     Modder:     Lider Roman
-    Version:    1.0.1
+    Version:    1.0.3
     GitHub URL: https://github.com/Stormtrooperroman/APKDeepLens
 """
 
@@ -32,14 +32,24 @@ class util:
     UNDERLINE = '\033[4m'
 
     def mod_print(text_output, color):
-        print(color + "{}".format(text_output) + util.ENDC)
+        print(color + f"{text_output}" + util.ENDC)
 
     def mod_log(text, color):
-        logging.info(color + "{}".format(text) + util.ENDC)
+        logging.info(color + f"{text}" + util.ENDC)
+
+
+def remove_spaces(lines):
+    min_space = float('inf')
+    for line in lines:
+        if line.strip():
+            num_spaces = len(line) - len(line.lstrip(' '))
+            min_space = min(min_space, num_spaces)
+    cleared_lines = [line[min_space:] if line.strip() else line for line in lines]
+    return cleared_lines
 
 class ReportGen(object):
 
-    def __init__(self, apk_name, manifest, res_path, source_path, template_path):
+    def __init__(self, apk_name, manifest, res_path, source_path, template_path = "report_template.html"):
         """
         Defining few important variables which are used throughout the class.
         """
@@ -47,7 +57,88 @@ class ReportGen(object):
         self.manifest = manifest
         self.res_path = res_path
         self.source_path = source_path
-        self.template_path = template_path
+
+    def format_table(self, rule_id, details):
+        items = {}
+        items["rule_id"] = rule_id
+        items["metadata"] = ""
+        for meta, value in details['metadata'].items():
+            if meta == 'id':
+                continue
+            meta_format = meta.upper().replace('_', '')
+            items["metadata"] += f"""
+            <div class="resp-table-row">
+                <div class="table-body-cell cell-left">
+                    {meta_format}
+                </div>
+                <div class="table-body-cell cell-right">
+                    {value}
+                </div>
+            </div>
+            """
+        files = details.get('files')
+        if files:
+            fstore = """
+            <div class="resp-table-row">
+                <div class="table-body-cell cell-left">
+                    FILES
+                </div>
+                <div class="resp-table files-width">
+            """
+            for match in files:
+                file_path = match['file_path']
+                position = match['match_position']
+                pos = f'{position[0]} - {position[1]}'
+                fstore += f"""
+                <div class="resp-table-body border-files">
+                    <div class="resp-table-row">
+                        <div class="table-body-cell cell-left">
+                            Match Position
+                        </div>
+                        <div class="table-body-cell cell-right">
+                            {pos}
+                        </div>
+                    </div>
+                """
+                lines = match.get('match_lines')
+                line = (lines[0] if lines[0] == lines[1]
+                        else f'{lines[0]}: {lines[1]}')
+                fstore += f"""
+                <div class="resp-table-row">
+                    <div class="table-body-cell cell-left">
+                        Line Number(s)
+                    </div>
+                    <div class="table-body-cell cell-right">
+                        {line}
+                    </div>
+                </div>
+                """
+                match_string = match['match_string'].split("\n")
+                if len(match_string) > 1:
+                    match_string = '\n'.join(remove_spaces(match_string))
+                else:
+                    match_string = match_string[0].strip()
+                match_string = f'<p class="match_string">{escape(match_string)}</p>'
+                fstore += f"""
+                    <div class="resp-table-row">
+                        <div class="table-body-cell cell-left">
+                            Match String
+                        </div>
+                        <div class="table-body-cell cell-right">
+                            {match_string}
+                        </div>
+                    </div>
+                </div>
+                """
+            fstore += """
+                </div> 
+            </div>
+            """
+            items["files"] = fstore
+        
+  
+        info = self.render_template('mobsfscan_template.html', items)
+        return info
 
     def render_template(self, template_name, datas, escape=False):
         """
@@ -56,8 +147,8 @@ class ReportGen(object):
         """
         try:
             t_templates_str = {
-                'report_template.html': self.load_template(self.template_path),
-                'grep_lines.html': '<div><span class="grep_filepath">{{ filepath }}</span>:<span class="grep_line">{{ line }}</span>:{{ content }}</div>'
+                'report_template.html': self.load_template("report_template.html"),
+                "mobsfscan_template.html": self.load_template("mobsfscan_template.html"),
             }
             render = t_templates_str.get(template_name, "")
             if not render:
@@ -68,6 +159,8 @@ class ReportGen(object):
                 if isinstance(v, list):
                     v = self.list_to_html(v)
                 render = re.sub('{{\s*' + re.escape(k) + '\s*}}', v.replace('\\', '\\\\'), render)
+            
+            render = re.sub('{{\s*\w*\s*}}', "", render)
             return render
 
         except Exception as e:
@@ -107,12 +200,19 @@ class ReportGen(object):
         read of the template.
         """
         try:
-            with open(self.template_path) as f:
+            with open(f"templates/{template_path}") as f:
                 return f.read()
         except Exception as e:
             util.mod_log(f"[-] ERROR in load_template: {str(e)}", util.FAIL)
             return ""
 
+    def load_style(self, report_type):
+        try:
+            with open(f"templates/{report_type}_style.css") as f:
+                return f.read()
+        except Exception as e:
+            util.mod_log(f"[-] ERROR in load_style: {str(e)}", util.FAIL)
+            return ""
 
     def grep_keyword(self, keyword):
         """
@@ -262,17 +362,11 @@ class ReportGen(object):
         """
         Convert an HTML file to a PDF.
         """
-        # read content from html report
-        read_obj = open(html_file, 'r')
-        source_html = read_obj.read()
-        read_obj.close()
 
         # write content from html report to pdf
-        result_file = open(pdf_name, "w+b")
-        pisa.CreatePDF(
-                source_html,                
-                dest=result_file)           
-        result_file.close()
+        html = HTML(html_file)
+        css = CSS(string='@page { size: A4; margin-left: 0.5cm }')
+        html.write_pdf(pdf_name, stylesheets=[css])
     
     def clean_apk_name(self, apk_name):
         """
@@ -288,12 +382,12 @@ class ReportGen(object):
         clean_apk_name = self.clean_apk_name(self.apk_name)
         if not os.path.exists('reports'):
             os.makedirs('reports')
-        json_report_path = "reports/report_{}.json".format(clean_apk_name)
+        json_report_path = f"reports/report_{clean_apk_name}.json"
         with open(json_report_path, 'w') as json_file:
             json.dump(json_response, json_file, indent=4)
-        util.mod_print("[+] Generated JSON report - {}".format(json_report_path), util.OKCYAN)
+        util.mod_print(f"[+] Generated JSON report - {json_report_path}", util.OKCYAN)
 
-    def generate_html_pdf_report(self, report_type):
+    def generate_html_pdf_report(self, report_type, json_response):
         """
         This the function generates an html and pdf report using functions mentioned in report_gen.py
         """
@@ -304,43 +398,43 @@ class ReportGen(object):
             manifest = self.manifest
             res_path = self.res_path
             source_path = self.source_path
-            template_path = self.template_path
-            apk_name = self.apk_name
+            apk_name = json_response["apk_name"]
 
-            obj = ReportGen(apk_name, manifest, res_path, source_path, template_path)
-            permissions  = obj.extract_permissions(manifest)
-            dangerous_permission = obj.extract_dangerous_permissions(manifest)
+            permissions  = json_response["permission"]
+            dangerous_permission = json_response["dangerous_permission"]
 
             html_dict = {}
-            html_dict['build'] = obj.get_build_information()
-            html_dict['package_name'] = manifest.attrib['package']
-            html_dict['android_version'] = manifest.attrib['android:versionCode']
+            # html_dict['build'] = obj.get_build_information()
+            html_dict['package_name'] = json_response["package_name"]
+            html_dict['android_version'] = json_response["android_version"]
             html_dict['date'] = datetime.datetime.today().strftime('%d/%m/%Y')
             html_dict['permissions'] = permissions
             html_dict['dangerous_permission'] = dangerous_permission
-            html_dict['intent_grep'] = obj.grep_keyword('intent')
-            html_dict['internal_storage_grep'] = obj.grep_keyword('internal_storage')
-            html_dict['external_storage_grep'] = obj.grep_keyword('external_storage')
-            #print(html_dict)
+            buffer = []
+            for rule_id, details in json_response["mobsfscan"].items():
+                formatted = self.format_table(rule_id, details)
+                buffer.append(formatted)
+            html_dict["mobsfscan"] = '\n'.join(buffer)
+            html_dict["style"] = self.load_style(report_type)
 
             # Ensure 'reports' directory exists
             if not os.path.exists('reports'):
                 os.makedirs('reports')
 
             # Generating the html report
-            report_content = obj.render_template('report_template.html', html_dict)
-            cleaned_apk_name = obj.clean_apk_name(self.apk_name)
-            html_report_path = "reports/report_{}.html".format(cleaned_apk_name)
-            obj.grenerate_html_report(report_content, html_report_path)
+            report_content = self.render_template('report_template.html', html_dict)
+            cleaned_apk_name = self.clean_apk_name(self.apk_name)
+            html_report_path = f"reports/report_{cleaned_apk_name}.html"
+            self.grenerate_html_report(report_content, html_report_path)
             if report_type == "html":
-                util.mod_print("[+] Generated HTML report - {}".format(html_report_path), util.OKCYAN)
+                util.mod_print(f"[+] Generated HTML report - {html_report_path}", util.OKCYAN)
 
             # Converting html report to pdf.
             if report_type == "pdf":
                 pdf_name = f"report_{cleaned_apk_name}.pdf"
-                pdf_path = "reports/{}".format(pdf_name)
-                obj.convert_html_to_pdf(html_report_path, pdf_path)
-                util.mod_print("[+] Generated PDF report - {}".format(pdf_path), util.OKCYAN)
+                pdf_path = f"reports/{pdf_name}"
+                self.convert_html_to_pdf(html_report_path, pdf_path)
+                util.mod_print(f"[+] Generated PDF report - {pdf_path}", util.OKCYAN)
 
 
         except Exception as e:

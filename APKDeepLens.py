@@ -18,7 +18,7 @@ from static_tools.mobsfscan.formatters import cli
     Desc:       Android security insights in full spectrum.
     Author:     Deepanshu Gajbhiye
     Modder:     Lider Roman
-    Version:    1.0.1
+    Version:    1.0.3
     GitHub URL: https://github.com/Stormtrooperroman/APKDeepLens
 """
 
@@ -74,7 +74,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(
         description="{BOLD}{GREEN}APKDeepLens:{ENDC} Android security insights in full spectrum. ".format(BOLD=util.BOLD, GREEN=util.OKCYAN, ENDC=util.ENDC),
-        epilog="For more information, visit our GitHub repository - https://github.com/d78ui98/APKDeepLens",
+        epilog="For more information, visit our GitHub repository - https://github.com/Stormtrooperroman/APKDeepLens",
         formatter_class=argparse.RawTextHelpFormatter
     )
 
@@ -86,9 +86,9 @@ def parse_args():
                     help="Enter a valid path of extracted source for apk.")
     parser.add_argument("-report", choices=["json", "pdf", "html"], default="json",
                     help="Format of the report to be generated. Default is JSON.")
-    parser.add_argument("-l",metavar="log level", help="Set the logging level")
     parser.add_argument("-f", "--force", action='store_true',
                     help="Extracting apk if source code already extracted")
+    parser.add_argument("-l",metavar="log level", help="Set the logging level")
     return parser.parse_args()
 
 
@@ -214,10 +214,10 @@ if __name__ == "__main__":
         extracted_apk_path = obj_self.return_abs_path(target_dir["path"])
 
         # Extraction useful infomration from android menifest file
-        #obj_self.extract_manifest_info(apk_name)
         extracted_source_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_source", apk_name)
         manifest_results = scan_android_manifest.ScanAndroidManifest().extract_manifest_info(extracted_source_path)
         results_dict["package_name"] = manifest_results["package_name"]
+        results_dict["android_version"] = manifest_results['platform_build_version_code']
         results_dict["permission"] = manifest_results["permissions"]
         results_dict["dangerous_permission"] = manifest_results["dangerous_permission"] 
         results_dict["manifest_analysis"] = {
@@ -285,13 +285,13 @@ if __name__ == "__main__":
                 elem.attrib = {k.replace('{http://schemas.android.com/apk/res/android}', 'android:'): v for k, v in elem.attrib.items()}
 
             # Creating object for report generation module.
-            obj = ReportGen(apk_name, manifest, res_path, source_path, template_path)
+            obj = ReportGen(apk_name, manifest, res_path, source_path)
             
         
             if args.report == "html":
-                obj.generate_html_pdf_report(report_type="html")
+                obj.generate_html_pdf_report(report_type="html", json_response=results_dict)
             elif args.report == "pdf":
-                obj.generate_html_pdf_report(report_type="pdf")
+                obj.generate_html_pdf_report(report_type="pdf", json_response=results_dict)
             elif args.report == "json":
                 obj.generate_json_report(results_dict)
             else:
