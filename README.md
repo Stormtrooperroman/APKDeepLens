@@ -31,12 +31,12 @@ APKDeepLens is a Python-based tool that performs various operations on APK files
 To use APKDeepLens, you'll need to have Python 3.8 or higher installed on your system. You can then install APKDeepLens using the following command:
 ### For Linux
 ```
-git clone https://github.com/Stormtrooperroman/APKDeepLens/tree/main
+git clone https://github.com/Stormtrooperroman/APKDeepLens.git
 cd /APKDeepLens
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python APKDeepLens.py --help
+python3 APKDeepLens.py --help
 ```
 ### For Windows
 This fork doesn't work on Windows because it use semgrep inside. But you can use it in WSL.
