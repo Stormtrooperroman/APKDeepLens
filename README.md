@@ -78,7 +78,11 @@ python3 APKDeepLens.py -apk file.apk -source <source-code-path>
 ```
 To generate detailed PDF and HTML reports after the scan you can pass `-report` argument as mentioned below.
 ```
-python3 APKDeepLens.py -apk file.apk -report
+python3 APKDeepLens.py -apk file.apk -report html
+```
+or
+```
+python3 APKDeepLens.py -apk file.apk -report pdf
 ```
 ## TODO
 - [x] Add mobsfscan
