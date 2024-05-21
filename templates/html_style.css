@@ -69,4 +69,29 @@
     .files-width {
         width: 100%;
     }
+
+    .info {
+        border-color: #2196F3 !important;
+        color: #2196F3 !important;
+    }
+    .warning {
+        border-color: #b45f06 !important;
+        color: #b45f06 !important;
+    }
+    .error {
+        border-color: darkred !important;
+        color: darkred !important;
+    }
+    .info .table-body-cell {
+        border-color: #2196F3 !important;
+        color: #2196F3 !important;
+    }
+    .warning .table-body-cell {
+        border-color: #b45f06 !important;
+        color: #b45f06 !important;
+    }
+    .error .table-body-cell {
+        border-color: darkred !important;
+        color: darkred !important;
+    }
 </style>

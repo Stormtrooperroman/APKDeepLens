@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
     GitHub URL: https://github.com/Stormtrooperroman/APKDeepLens
 """
 
-class util:
+class Util:
     '''
     A static class for which contain some useful variables and methods
     '''
@@ -32,20 +32,16 @@ class util:
     UNDERLINE = '\033[4m'
 
     def mod_print(text_output, color):
-        print(color + f"{text_output}" + util.ENDC)
+        print(color + f"{text_output}" + Util.ENDC)
 
     def mod_log(text, color):
-        logging.info(color + f"{text}" + util.ENDC)
+        logging.info(color + f"{text}" + Util.ENDC)
 
 
 def remove_spaces(lines):
-    min_space = float('inf')
-    for line in lines:
-        if line.strip():
-            num_spaces = len(line) - len(line.lstrip(' '))
-            min_space = min(min_space, num_spaces)
-    cleared_lines = [line[min_space:] if line.strip() else line for line in lines]
-    return cleared_lines
+    min_space = min(len(line) - len(line.lstrip()) for line in lines if line.strip()) if lines else 0
+    return [line[min_space:] if line.strip() else line for line in lines]
+
 
 class ReportGen(object):
 
@@ -59,9 +55,10 @@ class ReportGen(object):
         self.source_path = source_path
 
     def format_table(self, rule_id, details):
-        items = {}
-        items["rule_id"] = rule_id
-        items["metadata"] = ""
+        severity_colors = {'error': 'error', 'warning': 'warning', 'info': 'info'}
+        items = {'rule_id': rule_id, 'metadata': ''}
+        severity = details['metadata']['severity'].lower()
+        items['color'] = severity_colors.get(severity, 'info')
         for meta, value in details['metadata'].items():
             if meta == 'id':
                 continue
@@ -90,7 +87,15 @@ class ReportGen(object):
                 position = match['match_position']
                 pos = f'{position[0]} - {position[1]}'
                 fstore += f"""
-                <div class="resp-table-body border-files">
+                <div class="resp-table-body border-files {items['color']}">
+                    <div class="resp-table-row">
+                        <div class="table-body-cell cell-left">
+                            File Path
+                        </div>
+                        <div class="table-body-cell cell-right">
+                            {file_path}
+                        </div>
+                    </div>
                     <div class="resp-table-row">
                         <div class="table-body-cell cell-left">
                             Match Position
@@ -152,19 +157,19 @@ class ReportGen(object):
             }
             render = t_templates_str.get(template_name, "")
             if not render:
-                util.mod_log(f"[-] ERROR: Template {template_name} not found.", util.FAIL)
+                Util.mod_log(f"[-] ERROR: Template {template_name} not found.", Util.FAIL)
                 return ""
 
             for k, v in datas.items():
                 if isinstance(v, list):
                     v = self.list_to_html(v)
-                render = re.sub('{{\s*' + re.escape(k) + '\s*}}', v.replace('\\', '\\\\'), render)
+                render = re.sub(r'{{\s*' + re.escape(k) + r'\s*}}', v.replace('\\', '\\\\'), render)
             
-            render = re.sub('{{\s*\w*\s*}}', "", render)
+            render = re.sub(r'{{\s*\w*\s*}}', "", render)
             return render
 
         except Exception as e:
-            util.mod_log(f"[-] ERROR in render_template: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in render_template: {str(e)}", Util.FAIL)
             return ""
 
     def list_to_html(self, list_items):
@@ -173,13 +178,13 @@ class ReportGen(object):
         """
         try:
             if not isinstance(list_items, list):
-                util.mod_log("[-] ERROR: The provided input is not a list.", util.FAIL)
+                Util.mod_log("[-] ERROR: The provided input is not a list.", Util.FAIL)
                 return ""
             items = [f"<li>{perm}</li>" for perm in list_items]
             return "<ul>" + "\n".join(items) + "</ul>"
         
         except Exception as e:
-            util.mod_log(f"[-] ERROR in list_to_html: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in list_to_html: {str(e)}", Util.FAIL)
             return ""
 
 
@@ -193,7 +198,7 @@ class ReportGen(object):
             print("report generated")
         
         except Exception as e:
-            util.mod_log(f"[-] ERROR in generate_html_report: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in generate_html_report: {str(e)}", Util.FAIL)
 
     def load_template(self, template_path):
         """
@@ -203,7 +208,7 @@ class ReportGen(object):
             with open(f"templates/{template_path}") as f:
                 return f.read()
         except Exception as e:
-            util.mod_log(f"[-] ERROR in load_template: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in load_template: {str(e)}", Util.FAIL)
             return ""
 
     def load_style(self, report_type):
@@ -211,7 +216,7 @@ class ReportGen(object):
             with open(f"templates/{report_type}_style.css") as f:
                 return f.read()
         except Exception as e:
-            util.mod_log(f"[-] ERROR in load_style: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in load_style: {str(e)}", Util.FAIL)
             return ""
 
     def grep_keyword(self, keyword):
@@ -231,9 +236,9 @@ class ReportGen(object):
         keyword_search_dict = {
             'external_call': [
                 '([^a-zA-Z0-9](OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)[^a-zA-Z0-9])',
-                '(@(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)\()',
+                r'(@(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)\()',
             ],
-            'intent': ['(new Intent|new android\.content\.Intent|PendingIntent|sendBroadcast|sendOrderedBroadcast|startActivity|resolveActivity|createChooser|startService|bindService|registerReceiver)'],
+            'intent': ['(new Intent|new android\\.content\\.Intent|PendingIntent|sendBroadcast|sendOrderedBroadcast|startActivity|resolveActivity|createChooser|startService|bindService|registerReceiver)'],
             'internal_storage': ['(createTempFile|SQLiteDatabase|openOrCreateDatabase|execSQL|rawQuery)'],
             'external_storage': ['(EXTERNAL_STORAGE|EXTERNAL_CONTENT|getExternal)'],
         }
@@ -270,7 +275,7 @@ class ReportGen(object):
             return output
 
         except Exception as e:
-            util.mod_log(f"[-] ERROR in add_html_tag: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in add_html_tag: {str(e)}", Util.FAIL)
             return ""
 
     def get_build_information(self):
@@ -283,7 +288,7 @@ class ReportGen(object):
             return version
         
         except Exception as e:
-            util.mod_log(f"[-] ERROR in get_build_information: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in get_build_information: {str(e)}", Util.FAIL)
             return "?"
 
     def extract_permissions(self, manifest):
@@ -299,7 +304,7 @@ class ReportGen(object):
             return permissions
         
         except Exception as e:
-            util.mod_log(f"[-] ERROR in extract_permissions: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in extract_permissions: {str(e)}", Util.FAIL)
             return []
 
     def extract_dangerous_permissions(self, manifest):
@@ -355,7 +360,7 @@ class ReportGen(object):
                         permissions.append(permission_name)
             return permissions
         except Exception as e:
-            util.mod_log(f"[-] ERROR in extract_dangerous_permissions: {str(e)}", util.FAIL)
+            Util.mod_log(f"[-] ERROR in extract_dangerous_permissions: {str(e)}", Util.FAIL)
             return []
 
     def convert_html_to_pdf(self, html_file, pdf_name):
@@ -385,7 +390,7 @@ class ReportGen(object):
         json_report_path = f"reports/report_{clean_apk_name}.json"
         with open(json_report_path, 'w') as json_file:
             json.dump(json_response, json_file, indent=4)
-        util.mod_print(f"[+] Generated JSON report - {json_report_path}", util.OKCYAN)
+        Util.mod_print(f"[+] Generated JSON report - {json_report_path}", Util.OKCYAN)
 
     def generate_html_pdf_report(self, report_type, json_response):
         """
@@ -427,15 +432,15 @@ class ReportGen(object):
             html_report_path = f"reports/report_{cleaned_apk_name}.html"
             self.grenerate_html_report(report_content, html_report_path)
             if report_type == "html":
-                util.mod_print(f"[+] Generated HTML report - {html_report_path}", util.OKCYAN)
+                Util.mod_print(f"[+] Generated HTML report - {html_report_path}", Util.OKCYAN)
 
             # Converting html report to pdf.
             if report_type == "pdf":
                 pdf_name = f"report_{cleaned_apk_name}.pdf"
                 pdf_path = f"reports/{pdf_name}"
                 self.convert_html_to_pdf(html_report_path, pdf_path)
-                util.mod_print(f"[+] Generated PDF report - {pdf_path}", util.OKCYAN)
+                Util.mod_print(f"[+] Generated PDF report - {pdf_path}", Util.OKCYAN)
 
 
         except Exception as e:
-            util.mod_print(f"[-] {str(e)}", util.FAIL)
+            Util.mod_print(f"[-] {str(e)}", Util.FAIL)
