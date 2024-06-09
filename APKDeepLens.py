@@ -10,8 +10,9 @@ from static_tools import sensitive_info_extractor, scan_android_manifest
 from report_gen import ReportGen
 import shutil
 from static_tools.mobsfscan import __version__
-from static_tools.mobsfscan.mobsfscan import MobSFScan
-from static_tools.mobsfscan.formatters import cli
+from mobsfscan.mobsfscan import MobSFScan
+from mobsfscan.formatters import cli
+# from static_tools.mobsfscan.formatters import cli
 
 """
     Title:      APKDeepLens
@@ -118,7 +119,7 @@ def parse_args():
 
     parser.add_argument("-a","--apk", metavar="APK", type=str, required=True,
                         help="Path to the APK file to be analyzed.")
-    parser.add_argument("-v", "--version", action="version", version="APKDeepLens v1.0",
+    parser.add_argument("-v", "--version", action="version", version="APKDeepLens v1.0.3",
                         help="Display the version of APKDeepLens.")
     parser.add_argument("-S", "--source_code_path", metavar="APK", type=str,
                         help="Enter a valid path of extracted source for apk.")
