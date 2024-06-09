@@ -84,7 +84,7 @@ class SensitiveInfoExtractor(object):
         for file in list_of_files:
             try:
                 read = open(file, "r", encoding='utf-8', errors='ignore').read()
-                regex_for_insecure_conn = "((?:http://|s?ftp://|smtp://|:javascript:|www\d{0,3}[.])[\w().=/;,#:@?&~*+!$%\{}-]+)"
+                regex_for_insecure_conn = r"((?:http://|s?ftp://|smtp://|:javascript:|www\d{0,3}[.])[\w().=/;,#:@?&~*+!$%{}-]+)"
                 a = re.findall(regex_for_insecure_conn, read)
                 for i in a:
                     # Only add to the list if it is not a known false positive
@@ -122,7 +122,7 @@ class SensitiveInfoExtractor(object):
             "twilio_app_sid": "\bAP[a-zA-Z0-9_\\-]{32}\b",
             "paypal_braintree_access_token": "access_token\\$production\\$[0-9a-z]{16}\\$[0-9a-f]{32}",
             "square_oauth_secret": "sq0csp-[ 0-9A-Za-z\\-_]{43}",
-            "square_access_token": "sq0[a-z]{3}-[0-9A-Za-z\-_]{22,43}",
+            "square_access_token": r"sq0[a-z]{3}-[0-9A-Za-z\-_]{22,43}",
             "stripe_standard_api": "sk_live_[0-9a-zA-Z]{24}",
             "stripe_restricted_api": "rk_live_[0-9a-zA-Z]{24}",
             "github_access_token": "[a-zA-Z0-9_-]*:[a-zA-Z0-9_\\-]+@github\\.com*",
@@ -131,7 +131,7 @@ class SensitiveInfoExtractor(object):
             "gpg_private_key_block": "-----BEGIN PGP PRIVATE KEY BLOCK-----",
             "generic_api_key": "[a|A][p|P][i|I][_]?[k|K][e|E][y|Y].*['|\"][0-9a-zA-Z]{32,45}['|\"]",
             "generic_secret": "[s|S][e|E][c|C][r|R][e|E][t|T].*['|\"][0-9a-zA-Z]{32,45}['|\"]",
-            "ip_address": r"(?:(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)\.){3}(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)",
+            # "ip_address": r"(?:(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)\.){3}(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)",
             #"link_finder": "((?:https?://|www\d{0,3}[.])[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)+[\w().=/;,#:@?&~*+!$%{}-]*)",
             "password_in_url": "[a-zA-Z]{3,10}://[^/\\s:@]{3,20}:[^/\\s:@]{3,20}@.{1,100}[\"'\\s]"
             }

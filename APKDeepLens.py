@@ -9,10 +9,13 @@ import xml.etree.ElementTree as ET
 from static_tools import sensitive_info_extractor, scan_android_manifest
 from report_gen import ReportGen
 import shutil
-from static_tools.mobsfscan import __version__
-from mobsfscan.mobsfscan import MobSFScan
-from mobsfscan.formatters import cli
-# from static_tools.mobsfscan.formatters import cli
+from static_tools import sgrep
+# from static_tools.mobsfscan import __version__
+# from mobsfscan.mobsfscan import MobSFScan
+# from mobsfscan.formatters import cli
+# from mobsfscan.settings import IGNORE_FILENAMES, IGNORE_EXTENSIONS, IGNORE_PATHS, SEVERITY_FILTER
+# from libsast import Scanner
+
 
 """
     Title:      APKDeepLens
@@ -108,6 +111,7 @@ class AutoApkScanner:
     def apk_exists(apk_filename):
         return os.path.isfile(apk_filename)
 
+
 def parse_args():
     Util.print_logo()
 
@@ -182,7 +186,6 @@ if __name__ == "__main__":
             obj_self.extract_source_code(apk_file_abs_path, target_dir["path"])
 
         extracted_apk_path = obj_self.return_abs_path(target_dir["path"])
-
         extracted_source_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_source", apk_name)
         manifest_results = scan_android_manifest.ScanAndroidManifest().extract_manifest_info(extracted_source_path)
         results_dict["package_name"] = manifest_results["package_name"]
@@ -213,20 +216,23 @@ if __name__ == "__main__":
         Util.mod_log("[+] Reading all file paths ", Colors.OKCYAN)
         file_paths = obj.get_all_file_paths(extracted_apk_path)
         relative_to = extracted_apk_path
-        Util.mod_log("[+] Extracting all hardcoded secrets ", Colors.OKCYAN)
-        hardcoded_secrets_result = obj.extract_all_sensitive_info(file_paths, relative_to)
-        results_dict["hardcoded_secrets"] = hardcoded_secrets_result
+        # Util.mod_log("[+] Extracting all hardcoded secrets ", Colors.OKCYAN)
+        # hardcoded_secrets_result = obj.extract_all_sensitive_info(file_paths, relative_to)
+        # results_dict["hardcoded_secrets"] = hardcoded_secrets_result
 
-        Util.mod_log("[+] Extracting all insecure connections ", Colors.OKCYAN)
-        all_file_path = obj.get_all_file_paths(extracted_apk_path)
-        result = obj.extract_insecure_request_protocol(all_file_path)
-        print(result)
+        # Util.mod_log("[+] Extracting all insecure connections ", Colors.OKCYAN)
+        # all_file_path = obj.get_all_file_paths(extracted_apk_path)
+        # result = obj.extract_insecure_request_protocol(all_file_path)
 
-        scanner = MobSFScan([extracted_apk_path], json=True)
-        scan_results = scanner.scan()
-        results_dict["mobsfscan"] = scan_results["results"]
+        # scanner = MobSFScan([extracted_apk_path], json=True)
+        # scan_results = scanner.scan()
+        # print(" ".join(["semgrep", "-c", "./static_tools/rules", extracted_source_path, "--no-git-ignore", "--json-output =", f"./temp/{apk_name}.json"]))
+        # subprocess.run(["semgrep", "-c", "./static_tools/rules", extracted_source_path, "--no-git-ignore", f"--json-output=./temp/{apk_name}.json"], stdout=subprocess.DEVNULL)
+        scanner = sgrep.Scanner()
+        data = scanner.scan([extracted_apk_path])
+        results_dict["semgrep"] = data
 
-        cli.cli_output(None, scan_results, __version__, 'fancy_grid')
+        # cli.cli_output(None, scan_results, __version__, 'fancy_grid')
 
         if args.report:
             extracted_source_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_source", apk_name)
