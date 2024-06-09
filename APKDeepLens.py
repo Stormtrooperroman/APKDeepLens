@@ -12,7 +12,6 @@ import shutil
 from static_tools.mobsfscan import __version__
 from mobsfscan.mobsfscan import MobSFScan
 from mobsfscan.formatters import cli
-# from static_tools.mobsfscan.formatters import cli
 
 """
     Title:      APKDeepLens

@@ -205,11 +205,13 @@ class ReportGen(object):
         read of the template.
         """
         try:
-            with open(f"templates/{template_path}") as f:
+            with open(os.path.join('templates', template_path), 'r') as f:
                 return f.read()
+        except FileNotFoundError:
+            Util.mod_log(f"[-] ERROR: Template {template_path} not found.", Util.FAIL)
         except Exception as e:
             Util.mod_log(f"[-] ERROR in load_template: {str(e)}", Util.FAIL)
-            return ""
+        return ""
 
     def load_style(self, report_type):
         try:
@@ -219,64 +221,66 @@ class ReportGen(object):
             Util.mod_log(f"[-] ERROR in load_style: {str(e)}", Util.FAIL)
             return ""
 
-    def grep_keyword(self, keyword):
-        """
-        This function is used to read keyword dict and run the grep commands on the extracted android source code.
+ # TODO rewrite this using semgrep
 
-        """
-        output = ''
+    # def grep_keyword(self, keyword):
+    #     """
+    #     This function is used to read keyword dict and run the grep commands on the extracted android source code.
 
-        """
-        This dictionary stores the keywords to search with the grep command.
-        Grep is much much faster than re.
-        ToDo -
-        - Add more search keywords
-        - move entire project to use grep.
-        """
-        keyword_search_dict = {
-            'external_call': [
-                '([^a-zA-Z0-9](OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)[^a-zA-Z0-9])',
-                r'(@(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)\()',
-            ],
-            'intent': ['(new Intent|new android\\.content\\.Intent|PendingIntent|sendBroadcast|sendOrderedBroadcast|startActivity|resolveActivity|createChooser|startService|bindService|registerReceiver)'],
-            'internal_storage': ['(createTempFile|SQLiteDatabase|openOrCreateDatabase|execSQL|rawQuery)'],
-            'external_storage': ['(EXTERNAL_STORAGE|EXTERNAL_CONTENT|getExternal)'],
-        }
-        if not keyword in keyword_search_dict:
-            return ""
+    #     """
+    #     output = ''
 
-        for regexp in keyword_search_dict[keyword]:
-            cmd = 'cd "' + self.res_path + '" ; grep -ErIn "' + regexp + '" "' + self.source_path + '" 2>/dev/null'
-            #Eren yeager
-            try:
-                o = subprocess.check_output( cmd, shell=True ).decode('utf-8')
-            except Exception as e:
-                print(str(e))
-                continue
+    #     """
+    #     This dictionary stores the keywords to search with the grep command.
+    #     Grep is much much faster than re.
+    #     ToDo -
+    #     - Add more search keywords
+    #     - move entire project to use grep.
+    #     """
+    #     keyword_search_dict = {
+    #         'external_call': [
+    #             '([^a-zA-Z0-9](OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)[^a-zA-Z0-9])',
+    #             r'(@(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)\()',
+    #         ],
+    #         'intent': ['(new Intent|new android\\.content\\.Intent|PendingIntent|sendBroadcast|sendOrderedBroadcast|startActivity|resolveActivity|createChooser|startService|bindService|registerReceiver)'],
+    #         'internal_storage': ['(createTempFile|SQLiteDatabase|openOrCreateDatabase|execSQL|rawQuery)'],
+    #         'external_storage': ['(EXTERNAL_STORAGE|EXTERNAL_CONTENT|getExternal)'],
+    #     }
+    #     if not keyword in keyword_search_dict:
+    #         return ""
 
-            output = output + self.add_html_tag( o.strip(), regexp )
+    #     for regexp in keyword_search_dict[keyword]:
+    #         cmd = 'cd "' + self.res_path + '" ; grep -ErIn "' + regexp + '" "' + self.source_path + '" 2>/dev/null'
+    #         #Eren yeager
+    #         try:
+    #             o = subprocess.check_output( cmd, shell=True ).decode('utf-8')
+    #         except Exception as e:
+    #             print(str(e))
+    #             continue
 
-        return output
+    #         output = output + self.add_html_tag( o.strip(), regexp )
 
-    def add_html_tag(self, grep_result, regexp):
-        """
-        This method is used add the html tags to grep output to color the output for better presentation
-        """
-        try:
-            output = ''
-            for grep in grep_result.split("\n"):
-                tmp = grep.split(':')
-                if len(tmp) < 3:  # Ensure there are enough components in the split result
-                    continue
-                filepath, line, content = tmp[0], tmp[1], ':'.join(tmp[2:])
-                content = re.sub(regexp, 'ABRACADABRA1\\1ABRACADABRA2', content)
-                output += self.render_template('grep_lines.html', {'filepath': filepath, 'line': line, 'content': content}, True)
-                output = output.replace('ABRACADABRA1', '<span class="grep_keyword">').replace('ABRACADABRA2', '</span>')
-            return output
+    #     return output
 
-        except Exception as e:
-            Util.mod_log(f"[-] ERROR in add_html_tag: {str(e)}", Util.FAIL)
-            return ""
+    # def add_html_tag(self, grep_result, regexp):
+    #     """
+    #     This method is used add the html tags to grep output to color the output for better presentation
+    #     """
+    #     try:
+    #         output = ''
+    #         for grep in grep_result.split("\n"):
+    #             tmp = grep.split(':')
+    #             if len(tmp) < 3:  # Ensure there are enough components in the split result
+    #                 continue
+    #             filepath, line, content = tmp[0], tmp[1], ':'.join(tmp[2:])
+    #             content = re.sub(regexp, 'ABRACADABRA1\\1ABRACADABRA2', content)
+    #             output += self.render_template('grep_lines.html', {'filepath': filepath, 'line': line, 'content': content}, True)
+    #             output = output.replace('ABRACADABRA1', '<span class="grep_keyword">').replace('ABRACADABRA2', '</span>')
+    #         return output
+
+    #     except Exception as e:
+    #         Util.mod_log(f"[-] ERROR in add_html_tag: {str(e)}", Util.FAIL)
+    #         return ""
 
     def get_build_information(self):
         """
@@ -385,12 +389,17 @@ class ReportGen(object):
         This function generates the json report based on the json output
         """
         clean_apk_name = self.clean_apk_name(self.apk_name)
-        if not os.path.exists('reports'):
-            os.makedirs('reports')
-        json_report_path = f"reports/report_{clean_apk_name}.json"
-        with open(json_report_path, 'w') as json_file:
-            json.dump(json_response, json_file, indent=4)
-        Util.mod_print(f"[+] Generated JSON report - {json_report_path}", Util.OKCYAN)
+        reports_dir = 'reports'
+        os.makedirs(reports_dir, exist_ok=True)
+        json_report_path = os.path.join(reports_dir, f"report_{clean_apk_name}.json")
+
+        try:
+            with open(json_report_path, 'w') as json_file:
+                json.dump(json_response, json_file, indent=4)
+            Util.mod_print(f"[+] Generated JSON report - {json_report_path}", Util.OKCYAN)
+        except IOError as e:
+            Util.mod_log(f"[-] ERROR in generate_json_report: {str(e)}", Util.FAIL)
+
 
     def generate_html_pdf_report(self, report_type, json_response):
         """
