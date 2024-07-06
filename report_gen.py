@@ -221,67 +221,6 @@ class ReportGen(object):
             Util.mod_log(f"[-] ERROR in load_style: {str(e)}", Util.FAIL)
             return ""
 
- # TODO rewrite this using semgrep
-
-    # def grep_keyword(self, keyword):
-    #     """
-    #     This function is used to read keyword dict and run the grep commands on the extracted android source code.
-
-    #     """
-    #     output = ''
-
-    #     """
-    #     This dictionary stores the keywords to search with the grep command.
-    #     Grep is much much faster than re.
-    #     ToDo -
-    #     - Add more search keywords
-    #     - move entire project to use grep.
-    #     """
-    #     keyword_search_dict = {
-    #         'external_call': [
-    #             '([^a-zA-Z0-9](OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)[^a-zA-Z0-9])',
-    #             r'(@(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK|VERSION-CONTROL|REPORT|CHECKOUT|CHECKIN|UNCHECKOUT|MKWORKSPACE|UPDATE|LABEL|MERGE|BASELINE-CONTROL|MKACTIVITY|ORDERPATCH|ACL|PATCH|SEARCH|ARBITRARY)\()',
-    #         ],
-    #         'intent': ['(new Intent|new android\\.content\\.Intent|PendingIntent|sendBroadcast|sendOrderedBroadcast|startActivity|resolveActivity|createChooser|startService|bindService|registerReceiver)'],
-    #         'internal_storage': ['(createTempFile|SQLiteDatabase|openOrCreateDatabase|execSQL|rawQuery)'],
-    #         'external_storage': ['(EXTERNAL_STORAGE|EXTERNAL_CONTENT|getExternal)'],
-    #     }
-    #     if not keyword in keyword_search_dict:
-    #         return ""
-
-    #     for regexp in keyword_search_dict[keyword]:
-    #         cmd = 'cd "' + self.res_path + '" ; grep -ErIn "' + regexp + '" "' + self.source_path + '" 2>/dev/null'
-    #         #Eren yeager
-    #         try:
-    #             o = subprocess.check_output( cmd, shell=True ).decode('utf-8')
-    #         except Exception as e:
-    #             print(str(e))
-    #             continue
-
-    #         output = output + self.add_html_tag( o.strip(), regexp )
-
-    #     return output
-
-    # def add_html_tag(self, grep_result, regexp):
-    #     """
-    #     This method is used add the html tags to grep output to color the output for better presentation
-    #     """
-    #     try:
-    #         output = ''
-    #         for grep in grep_result.split("\n"):
-    #             tmp = grep.split(':')
-    #             if len(tmp) < 3:  # Ensure there are enough components in the split result
-    #                 continue
-    #             filepath, line, content = tmp[0], tmp[1], ':'.join(tmp[2:])
-    #             content = re.sub(regexp, 'ABRACADABRA1\\1ABRACADABRA2', content)
-    #             output += self.render_template('grep_lines.html', {'filepath': filepath, 'line': line, 'content': content}, True)
-    #             output = output.replace('ABRACADABRA1', '<span class="grep_keyword">').replace('ABRACADABRA2', '</span>')
-    #         return output
-
-    #     except Exception as e:
-    #         Util.mod_log(f"[-] ERROR in add_html_tag: {str(e)}", Util.FAIL)
-    #         return ""
-
     def get_build_information(self):
         """
         This method is used to get build information from android manifest.xml.
